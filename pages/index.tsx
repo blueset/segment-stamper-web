@@ -2,7 +2,15 @@ import Nav from '../components/nav';
 import Head from "next/head";
 import { GetServerSideProps } from 'next'
 import { getCollection, StampDoc } from '../utils/db';
-import moment, { Moment } from 'moment';
+import dayjs, { Dayjs } from 'dayjs';
+import updateLocale from 'dayjs/plugin/updateLocale'
+import utc from 'dayjs/plugin/utc'
+import duration from 'dayjs/plugin/duration'
+import timezone from 'dayjs/plugin/timezone'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import calendar from 'dayjs/plugin/calendar'
+import localizedFormat from 'dayjs/plugin/localizedFormat'
+import 'dayjs/locale/zh-cn' // import locale
 import { useCallback, useEffect, useState } from 'react';
 
 interface StampType<T = number> {
@@ -33,16 +41,25 @@ export const getServerSideProps: GetServerSideProps<Props> = async (context) => 
     };
     docs.push(prev);
   }
+
   return {
     props: {
-      stamps: docs.map(v => ({ date: v.date.getTime(), type: v.type }))
+      stamps: docs.map(v => ({ date: v.date.getTime(), type: v.type })),
     }
   };
 }
 
 export default function IndexPage({ stamps: initialStamps }: Props) {
-  moment.updateLocale("en", {
-    longDateFormat: {
+  dayjs.extend(utc);
+  dayjs.extend(timezone);
+  dayjs.extend(duration);
+  dayjs.extend(relativeTime);
+  dayjs.extend(calendar);
+  dayjs.extend(localizedFormat);
+  dayjs.extend(updateLocale);
+
+  dayjs.updateLocale("en", {
+    formats: {
       LT: 'HH:mm',
       LTS: 'HH:mm:ss',
       L: 'YYYY-MM-DD',
@@ -50,11 +67,16 @@ export default function IndexPage({ stamps: initialStamps }: Props) {
       LLL: 'D MMMM YYYY HH:mm',
       LLLL: 'dddd, D MMMM YYYY HH:mm',
     },
-  })
+  });
 
-  const [stamps, setStamps] = useState<StampType<Moment>[]>(initialStamps.map(v => ({
+  const tz = process.env.DAYJS_TZ ?? null;
+  if (tz) {
+    dayjs.tz.setDefault(tz);
+  }
+
+  const [stamps, setStamps] = useState<StampType<Dayjs>[]>(initialStamps.map(v => ({
     type: v.type,
-    date: moment(v.date),
+    date: dayjs(v.date).tz(),
   })).sort((a, b) => (a.date.valueOf() - b.date.valueOf())));
 
   const [secondsNow, setSecondsNow] = useState(86400);
@@ -77,7 +99,7 @@ export default function IndexPage({ stamps: initialStamps }: Props) {
     const content = await rawResponse.json();
     const newStamp = {
       type: content.currentStatus,
-      date: moment(content.currentDate),
+      date: dayjs(content.currentDate).tz(),
     };
 
     setStamps([...stamps, newStamp]);
@@ -86,9 +108,9 @@ export default function IndexPage({ stamps: initialStamps }: Props) {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const now = moment();
+      const now = dayjs().tz();
       const mmtMidnight = now.clone().startOf('day');
-      const diffSeconds = now.diff(mmtMidnight, 'seconds');
+      const diffSeconds = now.diff(mmtMidnight, 'second');
       setSecondsNow(diffSeconds);
     }, 1000);
 
@@ -124,14 +146,14 @@ export default function IndexPage({ stamps: initialStamps }: Props) {
         </div>
         <div className="timeline vertical">
           {[6,5,4,3,2,1,0].map((v) => {
-            const day = moment().subtract(v, "days");
+            const day = dayjs().tz().subtract(v, "day");
             const dayStamps = stamps
               .filter(v => v.date.date() === day.date())
               .reduce((prev, curr) => {
                 if (prev.length === 0) return [curr];
                 if (prev[prev.length - 1].type !== curr.type) return [...prev, curr];
                 return prev;
-              }, [] as StampType<Moment>[]);
+              }, [] as StampType<Dayjs>[]);
 
             const intervals: [number, number | null][] = [];
             let i = 0;
@@ -139,7 +161,7 @@ export default function IndexPage({ stamps: initialStamps }: Props) {
             while (i < dayStamps.length) {
               const stamp = dayStamps[i];
               const mmtMidnight = stamp.date.clone().startOf('day');
-              const diffSeconds = stamp.date.diff(mmtMidnight, 'seconds');
+              const diffSeconds = stamp.date.diff(mmtMidnight, 'second');
               if (stamp.type === "on") {
                 intervals.push([diffSeconds, null]);
               } else {
@@ -163,7 +185,7 @@ export default function IndexPage({ stamps: initialStamps }: Props) {
                   inlineSize: `${(v[1] - v[0]) / 864}%`,
                   marginInlineStart: `${v[0] / 864}%`,
                 }}></span>)}
-                {v === 0 && <span className="cell now" style={{
+                {v === 0 && <span className="cell now" id="now" key="now" style={{
                   inlineSize: `${100 - (secondsNow / 864)}%`,
                   marginInlineStart: `${secondsNow / 864}%`,
                 }}></span>}
@@ -181,16 +203,16 @@ export default function IndexPage({ stamps: initialStamps }: Props) {
         <div className="my-4 details">
           <h2 className="text-2xl">Breakdowns</h2>
           {[6, 5, 4, 3, 2, 1, 0].map((v) => {
-            const day = moment().subtract(v, "days");
+            const day = dayjs().tz().subtract(v, "day");
             const dayStamps = stamps
               .filter(v => v.date.date() === day.date())
               .reduce((prev, curr) => {
                 if (prev.length === 0) return [curr];
                 if (prev[prev.length - 1].type !== curr.type) return [...prev, curr];
                 return prev;
-              }, [] as StampType<Moment>[]);
+              }, [] as StampType<Dayjs>[]);
 
-            const intervals: [Moment | null, Moment | null][] = [];
+            const intervals: [Dayjs | null, Dayjs | null][] = [];
             let i = 0;
 
             while (i < dayStamps.length) {
@@ -211,9 +233,9 @@ export default function IndexPage({ stamps: initialStamps }: Props) {
               <section key={v}>
                 <h3 className="mt-2 text-xl">{day.format("ddd D MMM")}</h3>
                 <ul className="list-disc list-inside">
-                  {intervals.map(v => <li key={v[0].valueOf()}>
+                  {intervals.map(v => <li key={v[0]?.valueOf() ?? v[1]?.valueOf()}>
                     {v[0] ? v[0].format("LT") : "..."} — {v[1] ? v[1].format("LT") : "ongoing"}
-                    {v[0] && v[1] && ` (${moment.duration(v[0].diff(v[1])).humanize()})`}
+                    {v[0] && v[1] && ` (${dayjs.duration(v[0].diff(v[1])).humanize()})`}
                   </li>)}
                   {intervals.length < 1 && <li>Nil</li>}
                 </ul>
