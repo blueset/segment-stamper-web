@@ -51,7 +51,7 @@
   @apply absolute bg-red-500;
 }
 
-.cell.now {
+.cell.now, #now {
   background-color: #fff;
 }
 
