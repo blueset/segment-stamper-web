@@ -1,29 +1,31 @@
-# Tailwind CSS example
+# Segment Stamper (Web)
+A web app to record timestamps as on and off segments.
 
-This is an example of using [Tailwind CSS](https://tailwindcss.com) in a Next.js project.
+![Screenshot](readme/screenshot.png)
 
-## Deploy your own
+## Features
+* Record timestamps as on and off segments
+* Display a detailed history and visualization of segments in 7 days.
+* HTTP API
+* [Native Android App](https://github.com/blueset/segment-stamper-android)
 
-Deploy the example using [Vercel](https://vercel.com):
+## Attention
+Protect your deploy environment. No security measure is in place for the app. This means that everyone got access to the web interface can stamp for you.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/import/project?template=https://github.com/vercel/next.js/tree/canary/examples/with-tailwindcss)
+## Prerequisites
+* Node.js
+* Yarn
+* MongoDB database
 
-## How to use
-
-Execute [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) with [npm](https://docs.npmjs.com/cli/init) or [Yarn](https://yarnpkg.com/lang/en/docs/cli/create/) to bootstrap the example:
-
+## Install and run
 ```bash
-npx create-next-app --example with-tailwindcss with-tailwindcss-app
-# or
-yarn create next-app --example with-tailwindcss with-tailwindcss-app
+git clone https://github.com/blueset/segment-stamper-web
+cd segment-stamper-web
+yarn
+yarn build
+export MONGO_URL="mongodb+srv://username:password@databaseServerAddress/databaseName?retryWrites=true&w=majority"
+yarn serve
 ```
 
-Deploy it to the cloud with [Vercel](https://vercel.com/import?filter=next.js&utm_source=github&utm_medium=readme&utm_campaign=next-example) ([Documentation](https://nextjs.org/docs/deployment)).
-
-## Notes
-
-This example is a basic starting point for using [Tailwind CSS](https://tailwindcss.com) with Next.js. It includes the following [PostCSS](https://github.com/postcss/postcss) plugins:
-
-- [postcss-preset-env](https://preset-env.cssdb.org/) - Adds stage 2+ features and autoprefixes
-
-To control the generated stylesheet's filesize, this example uses Tailwind CSS' [`purge` option](https://tailwindcss.com/docs/controlling-file-size/#removing-unused-css) to remove unused CSS.
+## Deploy with Vercel
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/git/external?repository-url=https%3A%2F%2Fgithub.com%2Fblueset%2Fsegment-stamper-web&env=MONGO_URL&envDescription=MongoDB%20connection%20string%2C%20usually%20starts%20with%20%E2%80%9Cmongodb%2Bsrv%3A%2F%2F%E2%80%9D&envLink=https%3A%2F%2Fgithub.com%2Fblueset%2Fsegment-stamper-web&project-name=segment-stampler-web-hD6VgqkQo&repo-name=segment-stampler-web-hD6VgqkQo)
