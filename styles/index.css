@@ -8,7 +8,62 @@
 
 /* Write your own custom component styles here */
 .btn-blue {
-  @apply bg-blue-500 text-white font-bold py-2 px-4 rounded;
+  @apply px-4 py-2 font-bold text-white bg-blue-500 rounded;
+}
+
+.btn {
+  @apply px-4 py-2 font-bold text-white rounded;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+}
+
+.timeline {
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .vertical {
+    writing-mode: vertical-lr;
+    height: calc(100vh - 2rem);
+    flex-direction: column;
+    width: 100%;
+    flex-wrap: nowrap;
+  }
+
+  .vertical .row-key span {
+    writing-mode: horizontal-tb;
+  }
+}
+
+.timeline > .row {
+  @apply bg-gray-300;
+  max-block-size: 2em;
+  block-size: 2em;
+}
+
+.cell {
+  block-size: 2em;
+  @apply absolute bg-red-500;
+}
+
+.cell.now {
+  background-color: #fff;
+}
+
+.timeline > .row, .timeline > .row-key {
+  width: 100%;
+  @apply relative;
+  margin-block-end: 1em;
+}
+
+.timeline > .row-key {
+  @apply flex justify-between ;
+
 }
 
 /* Start purging... */
